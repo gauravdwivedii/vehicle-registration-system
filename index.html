@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Vehicle Registration System – Web Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#111827; --sub:#1f2937; --txt:#e5e7eb; --muted:#9ca3af; --accent:#38bdf8; --ok:#22c55e; --warn:#f59e0b; --err:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; background:linear-gradient(120deg,#0b1220,#0f172a 30%,#0b1220 60%); color:var(--txt)}
+    .container{max-width:1100px; margin:32px auto; padding:0 16px}
+    header{display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:16px}
+    h1{font-size:1.4rem; margin:0}
+    .pill{padding:6px 10px; border-radius:999px; background:var(--sub); color:var(--muted); font-size:.85rem}
+    nav{display:flex; flex-wrap:wrap; gap:8px; margin:16px 0 20px}
+    nav button{background:var(--sub); color:var(--txt); border:1px solid #273244; padding:10px 14px; border-radius:10px; cursor:pointer}
+    nav button.active{outline:2px solid var(--accent); color:#eaf7ff}
+    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px}
+    .card{background:var(--panel); border:1px solid #273244; border-radius:14px; padding:16px;}
+    .card h3{margin:0 0 10px; font-size:1.05rem}
+    label{display:block; font-size:.9rem; color:var(--muted); margin:10px 0 6px}
+    input, select, textarea{width:100%; padding:10px 12px; border-radius:10px; border:1px solid #273244; background:#0b1220; color:var(--txt)}
+    .row{display:flex; gap:10px}
+    .row > *{flex:1}
+    .btn{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; border:1px solid #273244; background:var(--sub); color:var(--txt); cursor:pointer}
+    .btn.primary{background:linear-gradient(120deg,#0ea5e9,#22d3ee); color:#081018; border:0}
+    .btn.ok{background:linear-gradient(120deg,#10b981,#34d399); color:#04100b; border:0}
+    .btn.warn{background:linear-gradient(120deg,#f59e0b,#fbbf24); color:#120b04; border:0}
+    .btn.err{background:linear-gradient(120deg,#ef4444,#f97316); color:#160906; border:0}
+    .muted{color:var(--muted); font-size:.9rem}
+    .list{max-height:260px; overflow:auto; border:1px dashed #263044; border-radius:10px; padding:10px; background:#0b1220}
+    .kpi{display:flex; gap:10px; flex-wrap:wrap}
+    .kpi div{background:#0b1220; border:1px solid #273244; border-radius:12px; padding:10px 12px; min-width:140px}
+    .badge{display:inline-block; padding:2px 8px; border-radius:999px; font-size:.8rem; border:1px solid #273244}
+    .badge.ok{border-color:#14532d; color:#86efac; background:#052e16}
+    .badge.info{border-color:#164e63; color:#7dd3fc; background:#082f49}
+    .badge.warn{border-color:#713f12; color:#fcd34d; background:#1f1607}
+    .code{font-family:ui-monospace,Menlo,Consolas,monospace; background:#0b1220; padding:2px 6px; border-radius:6px; border:1px solid #263044}
+    footer{margin:24px 0 8px; color:var(--muted); font-size:.9rem}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Vehicle Registration System – Web Demo</h1>
+      <span class="pill">Client‑side demo (no backend)</span>
+    </header>
+
+    <nav id="tabs">
+      <button data-tab="vehicles" class="active">Vehicles</button>
+      <button data-tab="users">Users</button>
+      <button data-tab="trips">Trips</button>
+      <button data-tab="data">Data & Export</button>
+    </nav>
+
+    <section id="vehicles" class="tab">
+      <div class="grid">
+        <div class="card">
+          <h3>Add vehicle</h3>
+          <div class="row">
+            <div>
+              <label>Registration no.</label>
+              <input id="v-reg" placeholder="e.g., DL9C2282" />
+            </div>
+            <div>
+              <label>Type</label>
+              <select id="v-type">
+                <option>Bike</option>
+                <option>Car</option>
+                <option>Heavy motor vehicles</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Seats</label>
+              <input id="v-seats" type="number" min="1" placeholder="2" />
+            </div>
+            <div>
+              <label>Company</label>
+              <input id="v-company" placeholder="YAMAHA" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Price per km</label>
+              <input id="v-price" type="number" min="0" step="0.01" placeholder="6" />
+            </div>
+            <div>
+              <label>PUC expiry (d/m/yyyy)</label>
+              <input id="v-puc" placeholder="02/02/2027" />
+            </div>
+          </div>
+          <div style="margin-top:12px; display:flex; gap:8px">
+            <button class="btn primary" id="add-vehicle">Add vehicle</button>
+            <button class="btn warn" id="edit-vehicle-price">Edit price by reg no.</button>
+          </div>
+          <p class="muted">Use the edit button to update price per km by entering registration number and new price in the fields above.</p>
+        </div>
+
+        <div class="card">
+          <h3>Vehicles</h3>
+          <div class="list" id="vehicle-list"></div>
+          <div class="kpi" style="margin-top:10px">
+            <div><div class="muted">Total vehicles</div><div id="kpi-vehicles" style="font-weight:600"></div></div>
+            <div><div class="muted">Avg price/km</div><div id="kpi-avgprice" style="font-weight:600"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="users" class="tab hidden">
+      <div class="grid">
+        <div class="card">
+          <h3>Add user</h3>
+          <div class="row">
+            <div><label>Name</label><input id="u-name" placeholder="NAME" /></div>
+            <div><label>Phone</label><input id="u-phone" placeholder="XXXX345678" /></div>
+          </div>
+          <label>Email</label><input id="u-email" placeholder="name@example.com" />
+          <div style="margin-top:12px"><button class="btn primary" id="add-user">Add user</button></div>
+        </div>
+
+        <div class="card">
+          <h3>Users</h3>
+          <div class="list" id="user-list"></div>
+          <p class="muted">Users are matched by phone when adding trips.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="trips" class="tab hidden">
+      <div class="grid">
+        <div class="card">
+          <h3>Add trip</h3>
+          <div class="row">
+            <div><label>User phone</label><input id="t-phone" placeholder="XXXX345678" /></div>
+            <div><label>Reg no.</label><input id="t-reg" placeholder="DL9C2282" /></div>
+          </div>
+          <div class="row">
+            <div><label>Start date (d/m/yyyy)</label><input id="t-start" placeholder="22/06/2023" /></div>
+            <div><label>End date (d/m/yyyy)</label><input id="t-end" placeholder="26/06/2023" /></div>
+          </div>
+          <div class="row">
+            <div><label>Vehicle type</label>
+              <select id="t-type">
+                <option>Bike</option><option>Car</option><option>Heavy motor vehicles</option>
+              </select>
+            </div>
+            <div><label>Price per km</label><input id="t-price" type="number" step="0.01" min="0" placeholder="6" /></div>
+          </div>
+          <div style="margin-top:12px"><button class="btn primary" id="add-trip">Add trip</button></div>
+          <p class="muted">Price per km defaults to the vehicle’s price if left blank.</p>
+        </div>
+
+        <div class="card">
+          <h3>Start / Complete trip</h3>
+          <div class="row">
+            <div><label>Trip ID</label><input id="x-trip" type="number" min="1" placeholder="1" /></div>
+            <div><label>Odometer</label><input id="x-odo" type="number" min="0" placeholder="8900 or 8945" /></div>
+          </div>
+          <div style="margin-top:12px; display:flex; gap:8px">
+            <button class="btn ok" id="start-trip">Start trip</button>
+            <button class="btn err" id="complete-trip">Complete trip</button>
+          </div>
+          <p class="muted">Start sets odometer start; complete sets odometer end, computes distance and amount.</p>
+        </div>
+
+        <div class="card">
+          <h3>Trips</h3>
+          <div class="list" id="trip-list"></div>
+          <div class="kpi" style="margin-top:10px">
+            <div><div class="muted">Total trips</div><div id="kpi-trips" style="font-weight:600"></div></div>
+            <div><div class="muted">Revenue (sum)</div><div id="kpi-revenue" style="font-weight:600"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="data" class="tab hidden">
+      <div class="grid">
+        <div class="card">
+          <h3>Data tools</h3>
+          <div style="display:flex; gap:8px; flex-wrap:wrap">
+            <button class="btn" id="export-json">Export JSON</button>
+            <label class="btn">
+              Import JSON
+              <input type="file" id="import-json" accept="application/json" style="display:none"/>
+            </label>
+            <button class="btn warn" id="reset-demo">Reset to demo</button>
+            <button class="btn" id="clear-all">Clear everything</button>
+          </div>
+          <p class="muted">All data is stored locally in your browser (localStorage).</p>
+          <textarea id="json-area" rows="10" placeholder="Exported JSON appears here"></textarea>
+        </div>
+
+        <div class="card">
+          <h3>Status</h3>
+          <div id="status"></div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      Built as a faithful browser demo of the original console application menus and outputs.
+    </footer>
+  </div>
+
+  <script>
+    // --- State & storage ---
+    const storeKey = 'vrs-data-v1';
+    let state = { vehicles: [], users: [], trips: [], nextVehicleId:1, nextUserId:1, nextTripId:1, seeded:false };
+
+    const el = sel => document.querySelector(sel);
+    const els = sel => Array.from(document.querySelectorAll(sel));
+    const money = n => `₹${(+n||0).toFixed(2)}`;
+
+    function load(){
+      const raw = localStorage.getItem(storeKey);
+      if(raw){ try{ state = JSON.parse(raw); }catch{} }
+      if(!state.seeded){
+        seedDemo(); // first run
+        persist();
+      }
+      render();
+    }
+    function persist(){ localStorage.setItem(storeKey, JSON.stringify(state)); }
+
+    function seedDemo(){
+      // Demo vehicle based on sample output
+      const v = {
+        id: state.nextVehicleId++,
+        reg:"DL9C2282", type:"Bike", seats:2, company:"YAMAHA",
+        price:6, puc:"02/02/2027"
+      };
+      state.vehicles.push(v);
+
+      // Demo user
+      const u = { id: state.nextUserId++, name:"AYUSH", phone:"9651612638", email:"MEAYUSH7391@GMAIL.COM" };
+      state.users.push(u);
+
+      // Demo trip (not started)
+      const t = {
+        id: state.nextTripId++,
+        userPhone:u.phone, reg:v.reg,
+        start:"22/06/2023", end:"26/06/2023",
+        type:"Bike", price:6,
+        odoStart:8900, odoEnd:8945,
+        distance:45, amount:270,
+        status:"Completed"
+      };
+      state.trips.push(t);
+      state.seeded = true;
+    }
+
+    // --- UI helpers ---
+    function setStatus(msg){ el('#status').innerHTML = `<span class="badge info">Info</span> <span class="muted">${msg}</span>`; }
+    function ok(msg){ el('#status').innerHTML = `<span class="badge ok">Success</span> ${msg}`; }
+    function warn(msg){ el('#status').innerHTML = `<span class="badge warn">Notice</span> ${msg}`; }
+
+    // --- Renderers ---
+    function renderVehicles(){
+      const list = el('#vehicle-list');
+      list.innerHTML = state.vehicles.map(v => `
+        <div style="padding:6px 0; border-bottom:1px dashed #263044">
+          <div><span class="code">${v.reg}</span> • ${v.type} • ${v.seats} seats • ${v.company}</div>
+          <div class="muted">Price/km: ${money(v.price)} • PUC: ${v.puc}</div>
+        </div>
+      `).join('') || '<div class="muted">No vehicles yet.</div>';
+
+      el('#kpi-vehicles').textContent = state.vehicles.length;
+      const avg = state.vehicles.reduce((s,v)=>s+ (+v.price||0),0)/(state.vehicles.length||1);
+      el('#kpi-avgprice').textContent = money(avg);
+    }
+
+    function renderUsers(){
+      const list = el('#user-list');
+      list.innerHTML = state.users.map(u => `
+        <div style="padding:6px 0; border-bottom:1px dashed #263044">
+          <div>${u.name} • <span class="code">${u.phone}</span></div>
+          <div class="muted">${u.email||''}</div>
+        </div>
+      `).join('') || '<div class="muted">No users yet.</div>';
+    }
+
+    function renderTrips(){
+      const list = el('#trip-list');
+      list.innerHTML = state.trips.map(t => `
+        <div style="padding:6px 0; border-bottom:1px dashed #263044">
+          <div>ID <span class="code">${t.id}</span> • ${t.type} • reg ${t.reg} • user ${t.userPhone}</div>
+          <div class="muted">${t.start} → ${t.end} • status: ${t.status||'Not started'}</div>
+          <div class="muted">odo: ${t.odoStart??'—'} → ${t.odoEnd??'—'} • dist: ${t.distance??'—'} • amount: ${t.amount? money(t.amount):'—'}</div>
+        </div>
+      `).join('') || '<div class="muted">No trips yet.</div>';
+
+      el('#kpi-trips').textContent = state.trips.length;
+      const rev = state.trips.reduce((s,t)=>s + (+t.amount||0), 0);
+      el('#kpi-revenue').textContent = money(rev);
+    }
+
+    function render(){ renderVehicles(); renderUsers(); renderTrips(); }
+
+    // --- Actions ---
+    el('#add-vehicle').addEventListener('click', ()=>{
+      const reg = el('#v-reg').value.trim();
+      const type = el('#v-type').value;
+      const seats = +el('#v-seats').value;
+      const company = el('#v-company').value.trim();
+      const price = +el('#v-price').value;
+      const puc = el('#v-puc').value.trim();
+      if(!reg || !seats || !company || !puc){ warn('Please provide registration, seats, company, and PUC.'); return; }
+      if(price<0){ warn('Price must be non-negative.'); return; }
+      if(state.vehicles.some(v=>v.reg.toLowerCase()===reg.toLowerCase())){ warn('Registration already exists.'); return; }
+      state.vehicles.push({ id: state.nextVehicleId++, reg, type, seats, company, price: price||0, puc });
+      persist(); renderVehicles(); ok(`Vehicle ${reg} added.`);
+    });
+
+    el('#edit-vehicle-price').addEventListener('click', ()=>{
+      const reg = el('#v-reg').value.trim();
+      const price = +el('#v-price').value;
+      if(!reg){ warn('Enter registration to edit price.'); return; }
+      const v = state.vehicles.find(v=>v.reg.toLowerCase()===reg.toLowerCase());
+      if(!v){ warn('Vehicle not found.'); return; }
+      if(!(price>=0)){ warn('Enter a valid new price.'); return; }
+      v.price = price;
+      persist(); renderVehicles(); ok(`Updated price for ${reg} to ${money(price)}.`);
+    });
+
+    el('#add-user').addEventListener('click', ()=>{
+      const name = el('#u-name').value.trim();
+      const phone = el('#u-phone').value.trim();
+      const email = el('#u-email').value.trim();
+      if(!name || !phone){ warn('Name and phone are required.'); return; }
+      if(state.users.some(u=>u.phone===phone)){ warn('Phone already exists.'); return; }
+      state.users.push({ id: state.nextUserId++, name, phone, email });
+      persist(); renderUsers(); ok(`User ${name} added.`);
+    });
+
+    el('#add-trip').addEventListener('click', ()=>{
+      const phone = el('#t-phone').value.trim();
+      const reg = el('#t-reg').value.trim();
+      const start = el('#t-start').value.trim();
+      const end = el('#t-end').value.trim();
+      const type = el('#t-type').value;
+      let price = +el('#t-price').value;
+
+      const user = state.users.find(u=>u.phone===phone);
+      if(!user){ warn('User phone not found.'); return; }
+      const veh = state.vehicles.find(v=>v.reg.toLowerCase()===reg.toLowerCase());
+      if(!veh){ warn('Vehicle reg not found.'); return; }
+      if(!price && (price!==0)) price = +veh.price||0;
+
+      const t = { id: state.nextTripId++, userPhone:phone, reg, start, end, type, price, status:'Not started' };
+      state.trips.push(t);
+      persist(); renderTrips(); ok(`Trip ${t.id} added for ${phone}.`);
+    });
+
+    el('#start-trip').addEventListener('click', ()=>{
+      const id = +el('#x-trip').value; const odo = +el('#x-odo').value;
+      const t = state.trips.find(x=>x.id===id);
+      if(!t){ warn('Trip not found.'); return; }
+      if(!(odo>=0)){ warn('Enter valid odometer.'); return; }
+      t.odoStart = odo; t.status = 'Started';
+      persist(); renderTrips(); ok(`Trip ${id} started at ${odo}.`);
+    });
+
+    el('#complete-trip').addEventListener('click', ()=>{
+      const id = +el('#x-trip').value; const odo = +el('#x-odo').value;
+      const t = state.trips.find(x=>x.id===id);
+      if(!t){ warn('Trip not found.'); return; }
+      if(typeof t.odoStart!=='number'){ warn('Start the trip first.'); return; }
+      if(!(odo>=t.odoStart)){ warn('End odometer must be ≥ start.'); return; }
+      t.odoEnd = odo; t.distance = odo - t.odoStart; t.amount = t.distance * (+t.price||0); t.status='Completed';
+      persist(); renderTrips(); ok(`Trip ${id} completed • Distance ${t.distance} • Amount ${money(t.amount)}.`);
+    });
+
+    // Export / Import / Reset
+    el('#export-json').addEventListener('click', ()=>{
+      el('#json-area').value = JSON.stringify(state, null, 2);
+      ok('Exported JSON shown below.');
+    });
+    el('#import-json').addEventListener('change', (e)=>{
+      const file = e.target.files[0]; if(!file) return;
+      const fr = new FileReader();
+      fr.onload = () => {
+        try{
+          const data = JSON.parse(fr.result);
+          if(!data.vehicles || !data.users || !data.trips){ warn('Invalid file.'); return; }
+          state = data; persist(); render(); ok('Imported data.');
+        }catch{ warn('Failed to parse JSON.'); }
+      };
+      fr.readAsText(file);
+    });
+    el('#reset-demo').addEventListener('click', ()=>{
+      state = { vehicles:[], users:[], trips:[], nextVehicleId:1, nextUserId:1, nextTripId:1, seeded:false };
+      seedDemo(); persist(); render(); ok('Reset to demo data.');
+    });
+    el('#clear-all').addEventListener('click', ()=>{
+      localStorage.removeItem(storeKey);
+      state = { vehicles:[], users:[], trips:[], nextVehicleId:1, nextUserId:1, nextTripId:1, seeded:true };
+      persist(); render(); ok('Cleared all data.');
+    });
+
+    // Tabs
+    els('#tabs button').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        els('#tabs button').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        const tab = b.dataset.tab;
+        els('.tab').forEach(s=>s.classList.add('hidden'));
+        el('#'+tab).classList.remove('hidden');
+      });
+    });
+
+    load();
+  </script>
+</body>
+</html>
