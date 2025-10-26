@@ -96,7 +96,6 @@
           </div>
           <div style="margin-top:12px; display:flex; gap:8px">
             <button class="btn primary" id="add-vehicle">Add vehicle</button>
-            <button class="btn warn" id="edit-vehicle-price">Edit price by reg no.</button>
           </div>
           <p class="muted">Use the edit button to update price per km by entering registration number and new price in the fields above.</p>
         </div>
@@ -318,16 +317,6 @@
       persist(); renderVehicles(); ok(`Vehicle ${reg} added.`);
     });
 
-    el('#edit-vehicle-price').addEventListener('click', ()=>{
-      const reg = el('#v-reg').value.trim();
-      const price = +el('#v-price').value;
-      if(!reg){ warn('Enter registration to edit price.'); return; }
-      const v = state.vehicles.find(v=>v.reg.toLowerCase()===reg.toLowerCase());
-      if(!v){ warn('Vehicle not found.'); return; }
-      if(!(price>=0)){ warn('Enter a valid new price.'); return; }
-      v.price = price;
-      persist(); renderVehicles(); ok(`Updated price for ${reg} to ${money(price)}.`);
-    });
 
     el('#add-user').addEventListener('click', ()=>{
       const name = el('#u-name').value.trim();
